@@ -40,9 +40,16 @@ const Ingredients = () => {
     }
 
     const removeIngredientHandler = id => {
-        setUserIngredients(preState =>
-            preState.filter(ingredient => ingredient.id !== id)
-        )
+        fetch(
+            `https://react-hooks-d3fc1.firebaseio.com/ingredients/${id}.json`,
+            {
+                method: 'DELETE',
+            }
+        ).then(response => {
+            setUserIngredients(preState =>
+                preState.filter(ingredient => ingredient.id !== id)
+            )
+        })
     }
 
     const filteredIngredientHandler = useCallback(filteredIngredient => {
