@@ -1,12 +1,7 @@
 {
-    "plugins": [
-        "react"
-    ],
-    "extends": [
-        "eslint:recommended",
-        "plugin:react/recommended"
-    ],
+    "plugins": ["react"],
+    "extends": ["eslint:recommended", "plugin:react/recommended"],
     "rules": {
-       "no-set-state": "off"
+        "no-set-state": "off"
     }
 }
