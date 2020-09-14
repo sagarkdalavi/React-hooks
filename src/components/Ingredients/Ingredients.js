@@ -1,12 +1,26 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useReducer, useState, useEffect, useCallback } from 'react'
 
 import IngredientForm from './IngredientForm'
 import IngredientList from './IngredientList'
 import Search from './Search'
 import ErrorModal from '../UI/ErrorModal'
 
+const ingredientReducer = (currentIngredients, action) => {
+    switch (action.type) {
+        case 'SET':
+            return action.ingredients
+        case 'ADD':
+            return [...currentIngredients, action.ingredient]
+        case 'DELETE':
+            return currentIngredients.filter((ing) => ing.id !== action.id)
+        default:
+            throw new Error('should not get there!')
+    }
+}
+
 const Ingredients = () => {
-    const [userIngredients, setUserIngredients] = useState([])
+    const [userIngredients, dispatch] = useReducer(ingredientReducer, [])
+    //const [userIngredients, setUserIngredients] = useState([])
     const [isLoading, setIsLoading] = useState(false)
     const [error, setError] = useState('')
     // useEffect(() => {
@@ -26,28 +40,32 @@ const Ingredients = () => {
     //         })
     // }, [])
 
-    const addIngredientHandler = ingredient => {
+    const addIngredientHandler = (ingredient) => {
         setIsLoading(true)
         fetch('https://react-hooks-d3fc1.firebaseio.com/ingredients.json', {
             method: 'POST',
             body: JSON.stringify(ingredient),
             header: { 'Content-Type': 'application/json' },
         })
-            .then(response => response.json())
-            .then(responseData => {
+            .then((response) => response.json())
+            .then((responseData) => {
                 setIsLoading(false)
-                setUserIngredients(preState => [
-                    ...preState,
-                    { id: responseData.name, ...ingredient },
-                ])
+                // setUserIngredients((preState) => [
+                //     ...preState,
+                //     { id: responseData.name, ...ingredient },
+                // ])
+                dispatch({
+                    type: 'ADD',
+                    ingredient: { id: responseData.name, ...ingredient },
+                })
             })
-            .catch(error => {
+            .catch((error) => {
                 setIsLoading(false)
                 setError('Something went wrong')
             })
     }
 
-    const removeIngredientHandler = id => {
+    const removeIngredientHandler = (id) => {
         setIsLoading(true)
         fetch(
             `https://react-hooks-d3fc1.firebaseio.com/ingredients/${id}.json`,
@@ -55,20 +73,22 @@ const Ingredients = () => {
                 method: 'DELETE',
             }
         )
-            .then(response => {
+            .then((response) => {
                 setIsLoading(false)
-                setUserIngredients(preState =>
-                    preState.filter(ingredient => ingredient.id !== id)
-                )
+                // setUserIngredients((preState) =>
+                //     preState.filter((ingredient) => ingredient.id !== id)
+                // )
+                dispatch({ type: 'DELETE', id: id })
             })
-            .catch(error => {
+            .catch((error) => {
                 setIsLoading(false)
                 setError('Something went wrong')
             })
     }
 
-    const filteredIngredientHandler = useCallback(filteredIngredient => {
-        setUserIngredients(filteredIngredient)
+    const filteredIngredientHandler = useCallback((filteredIngredient) => {
+        // setUserIngredients(filteredIngredient)
+        dispatch({ type: 'SET', ingredients: filteredIngredient })
     }, [])
 
     const clearError = () => {
@@ -87,7 +107,7 @@ const Ingredients = () => {
                 <Search onLoadIngredients={filteredIngredientHandler} />
                 <IngredientList
                     ingredients={userIngredients}
-                    onRemoveItem={id => {
+                    onRemoveItem={(id) => {
                         removeIngredientHandler(id)
                     }}
                 />
