@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import Card from '../UI/Card'
 import './Search.css'
 
-const Search = React.memo(props => {
+const Search = React.memo((props) => {
     const { onLoadIngredients } = props
     const [enteredFilter, setEnteredFilter] = useState('')
     const inputRef = useRef()
@@ -18,9 +18,8 @@ const Search = React.memo(props => {
                     'https://react-hooks-d3fc1.firebaseio.com/ingredients.json' +
                         query
                 )
-                    .then(response => response.json())
-                    .then(responseData => {
-                        console.log('response data:', responseData)
+                    .then((response) => response.json())
+                    .then((responseData) => {
                         const loadingIngredients = []
                         for (const key in responseData) {
                             loadingIngredients.push({
@@ -47,7 +46,7 @@ const Search = React.memo(props => {
                         ref={inputRef}
                         type="text"
                         value={enteredFilter}
-                        onChange={event => {
+                        onChange={(event) => {
                             setEnteredFilter(event.target.value)
                         }}
                     />

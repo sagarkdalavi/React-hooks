@@ -1,4 +1,4 @@
-import React, { useReducer, useState, useEffect, useCallback } from 'react'
+import React, { useReducer, useCallback } from 'react'
 
 import IngredientForm from './IngredientForm'
 import IngredientList from './IngredientList'
@@ -18,11 +18,30 @@ const ingredientReducer = (currentIngredients, action) => {
     }
 }
 
+const httpReducer = (currHttpState, action) => {
+    switch (action.type) {
+        case 'SEND':
+            return { loading: true, error: null }
+        case 'RESPONSE':
+            return { ...currHttpState, loading: false }
+        case 'ERROR':
+            return { loading: false, error: action.errorMessage }
+        case 'CLEAR':
+            return { ...currHttpState, error: null }
+        default:
+            throw new Error('should not get there!')
+    }
+}
+
 const Ingredients = () => {
     const [userIngredients, dispatch] = useReducer(ingredientReducer, [])
+    const [httpState, dispatchHttp] = useReducer(httpReducer, {
+        loading: false,
+        error: null,
+    })
     //const [userIngredients, setUserIngredients] = useState([])
-    const [isLoading, setIsLoading] = useState(false)
-    const [error, setError] = useState('')
+    //const [isLoading, setIsLoading] = useState(false)
+    //const [error, setError] = useState('')
     // useEffect(() => {
     //     fetch('https://react-hooks-d3fc1.firebaseio.com/ingredients.json')
     //         .then(response => response.json())
@@ -41,7 +60,8 @@ const Ingredients = () => {
     // }, [])
 
     const addIngredientHandler = (ingredient) => {
-        setIsLoading(true)
+        //setIsLoading(true)
+        dispatchHttp({ type: 'SEND' })
         fetch('https://react-hooks-d3fc1.firebaseio.com/ingredients.json', {
             method: 'POST',
             body: JSON.stringify(ingredient),
@@ -49,7 +69,8 @@ const Ingredients = () => {
         })
             .then((response) => response.json())
             .then((responseData) => {
-                setIsLoading(false)
+                dispatchHttp({ type: 'RESPONSE' })
+                //setIsLoading(false)
                 // setUserIngredients((preState) => [
                 //     ...preState,
                 //     { id: responseData.name, ...ingredient },
@@ -60,13 +81,20 @@ const Ingredients = () => {
                 })
             })
             .catch((error) => {
-                setIsLoading(false)
-                setError('Something went wrong')
+                // setIsLoading(false)
+                dispatchHttp({
+                    type: 'ERROR',
+                    errorMessage: 'Something went wrong',
+                })
+
+                //setError('Something went wrong')
             })
     }
 
     const removeIngredientHandler = (id) => {
-        setIsLoading(true)
+        //setIsLoading(true)
+        dispatchHttp({ type: 'SEND' })
+
         fetch(
             `https://react-hooks-d3fc1.firebaseio.com/ingredients/${id}.json`,
             {
@@ -74,15 +102,22 @@ const Ingredients = () => {
             }
         )
             .then((response) => {
-                setIsLoading(false)
+                dispatchHttp({ type: 'RESPONSE' })
+
+                // setIsLoading(false)
                 // setUserIngredients((preState) =>
                 //     preState.filter((ingredient) => ingredient.id !== id)
                 // )
                 dispatch({ type: 'DELETE', id: id })
             })
             .catch((error) => {
-                setIsLoading(false)
-                setError('Something went wrong')
+                dispatchHttp({
+                    type: 'ERROR',
+                    errorMessage: 'Something went wrong!',
+                })
+
+                //setIsLoading(false)
+                //setError('Something went wrong')
             })
     }
 
@@ -92,15 +127,18 @@ const Ingredients = () => {
     }, [])
 
     const clearError = () => {
-        setError(null)
+        // setError(null)
+        dispatchHttp({ type: 'CLEAR' })
     }
 
     return (
         <div className="App">
-            {error && <ErrorModal onClose={clearError}>{error}</ErrorModal>}
+            {httpState.error && (
+                <ErrorModal onClose={clearError}>{httpState.error}</ErrorModal>
+            )}
             <IngredientForm
                 onAddIngredient={addIngredientHandler}
-                loading={isLoading}
+                loading={httpState.loading}
             />
 
             <section>
